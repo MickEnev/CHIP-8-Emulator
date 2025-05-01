@@ -19,7 +19,7 @@ class Memory {
     void loadFontSet();
     
     private:
-        std::array<uint8_t, SIZE> mem;
+        std::array<uint8_t, SIZE> _mem;
 
 };
 

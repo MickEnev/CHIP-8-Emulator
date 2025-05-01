@@ -1,8 +1,11 @@
 #include <SDL3/SDL.h>
 #include <iostream>
+#include "memory.h"
 
 int main(int argc, char* argv[]) {
     std::cout << "SDL WORKS" << std::endl;
+    Memory memTest = Memory();
+    std::cout << memTest.read(0x050) << std::endl;
 
     SDL_Window *window;
     bool done = false;
@@ -12,7 +15,7 @@ int main(int argc, char* argv[]) {
     window = SDL_CreateWindow(
         "An SDL3 window", 
         640,
-        480,
+        320,
         SDL_WINDOW_OPENGL
     );
 
@@ -35,6 +38,6 @@ int main(int argc, char* argv[]) {
 
     SDL_DestroyWindow(window);
     SDL_Quit();
-
+    
     return 0;
 }
