@@ -1,12 +1,39 @@
 #include <SDL3/SDL.h>
 #include <iostream>
+#include <array>
+#include <cstdint>
+#include <cstring>
 #include "memory.h"
+#include "display.h"
 
 int main(int argc, char* argv[]) {
     std::cout << "SDL WORKS" << std::endl;
     Memory memTest = Memory();
     std::cout << memTest.read(0x050) << std::endl;
 
+    Display display;
+    bool done = false;
+
+    uint8_t videoBuffer[64 * 32];
+    std::memset(videoBuffer, 0, sizeof(videoBuffer));
+    for (int y = 10; y < 20; y++) {
+        for (int x = 20; x < 40; x++) {
+            videoBuffer[y * 64 + x] = 1;
+        }
+    }
+
+    while (!done) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                done = true;
+            }
+        }
+
+        display.clear();
+        display.draw(videoBuffer);
+    }
+    /*
     SDL_Window *window;
     bool done = false;
 
@@ -38,6 +65,7 @@ int main(int argc, char* argv[]) {
 
     SDL_DestroyWindow(window);
     SDL_Quit();
+    */
     
     return 0;
 }
