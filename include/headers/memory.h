@@ -15,7 +15,7 @@ class Memory {
     uint8_t read(uint16_t address) const; // Address is 2 bytes but points to location in memory that is 1 byte
     // Write to that data
     void write(uint16_t address, uint8_t value); // So we take 2 byte address go to it and insert 1 byte value
-    void LoadROM(const uint8_t* data, size_t size);
+    void loadROM(const uint8_t* data, size_t size);
     void loadFontSet();
     
     private:

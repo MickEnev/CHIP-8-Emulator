@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 
-Chip8::Chip8() : _I(0), _PC(0), _delayTimer(0), _soundTimer(0)
+Chip8::Chip8() : _I(0), _PC(0x200), _delayTimer(0), _soundTimer(0)
     {
         // Clear memory
         std::fill(std::begin(_V), std::end(_V), 0);
@@ -25,8 +25,10 @@ void Chip8::loadROM(const char* filename) {
 
     std::vector<char> buffer(size);
     if (!rom.read(buffer.data(), size)) {
-        // Left off here before meeting with swarup
+        throw std::runtime_error("Failed to read ROM");
     }
+
+    _memory.loadROM(reinterpret_cast<uint8_t*>(buffer.data()), size);
 
 }
 
@@ -101,22 +103,45 @@ void Chip8::executeOpcode(uint16_t opcode) {
             _PC = opcode & 0x0FFF;
             break;
         case 0x2000:
-            _stack.push(opcode & 0x0FFF);
-            _PC = _stack.top();
+            _stack.push(_PC);
+            _PC = opcode & 0x0FFF;
             break;
-        case 0x3000: // TODO: Come back to this and check that its right
+        case 0x3000:
             if (_V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF)) {
-                _stack.pop();
-                _PC = _stack.top();
+                _PC += 2;
             }
-        // TODO 3 4 and 5
+            break;
         case 0x6000:
             _V[(opcode & 0x0F00) >> 8] = opcode & 0x00FF; // 0000 0000 0000 1011 
             break;
         case 0x7000:
             _V[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
             break;
+        case 0xA000:
+            _I = opcode & 0x0FFF;
+            break;
+        case 0XD000: {
+            uint8_t x = _V[(opcode & 0x0F00) >> 8];
+            uint8_t y = _V[(opcode & 0x00F0) >> 4];
+            uint8_t height = opcode & 0x000F;
+            _V[0xF] = 0;
 
+            for (int row = 0; row < height; row++) {
+                uint8_t spriteByte = _memory.read(_I + row);
+                for (int col = 0; col < 8; col++) {
+                    if ((spriteByte & (0x80 >> col)) != 0) {
+                        int index = ((y + row) % 32) * 64 + ((x + col) % 64);
+                        if (_video[index] == 1) {
+                            _V[0xF] = 1;
+                        }
+                        _video[index] ^= 1;
+                    }
+                }
+                std::cout << "I=" << std::hex << +_I << " x=" << +x << " y=" << +y << " byte=" << +spriteByte << std::endl;
+            }
+            
+            break;
+        }
         default:
             std::cerr << "Unknown opcode: " << std::hex << opcode << std::endl;
     }

@@ -41,7 +41,7 @@ void Memory::write(uint16_t address, uint8_t value) {
     _mem[address] = value;
 }
 
-void Memory::LoadROM(const uint8_t* data, size_t size) {
+void Memory::loadROM(const uint8_t* data, size_t size) {
     if (size > (SIZE - 0x200)) throw std::runtime_error("ROM too large");
     std::memcpy(&_mem[0x200], data, size);
 }

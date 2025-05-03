@@ -16,7 +16,25 @@ int main(int argc, char* argv[]) {
     bool done = false;
 
     Chip8 cpu;
+    cpu.loadROM("src/IBM Logo.ch8");
 
+    while (!done) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                done = true;
+            }
+        }
+            cpu.cycle();
+            cpu.updateTimers();
+
+            display.clear();
+            display.draw(cpu.getVideoBuffer());
+            
+            SDL_Delay(2);
+    }
+
+    /*
     // Test video buffer of rectangle
     uint8_t videoBuffer[64 * 32];
     std::memset(videoBuffer, 0, sizeof(videoBuffer));
@@ -43,7 +61,8 @@ int main(int argc, char* argv[]) {
         cpu.testExecuteOpcode(0x00E0);
         display.draw(cpu.getVideoBuffer());
     }
-    /*
+
+
     SDL_Window *window;
     bool done = false;
 
