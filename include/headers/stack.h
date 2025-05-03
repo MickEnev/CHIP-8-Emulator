@@ -10,6 +10,7 @@ class Stack {
     uint16_t pop();
     bool empty() const;
     size_t size() const;
+    uint16_t top();
 
     private:
         std::stack<uint16_t> _stack;

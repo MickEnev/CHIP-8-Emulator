@@ -5,6 +5,7 @@
 #include <cstring>
 #include "memory.h"
 #include "display.h"
+#include "chip8.h"
 
 int main(int argc, char* argv[]) {
     std::cout << "SDL WORKS" << std::endl;
@@ -14,6 +15,8 @@ int main(int argc, char* argv[]) {
     Display display;
     bool done = false;
 
+    Chip8 cpu;
+
     uint8_t videoBuffer[64 * 32];
     std::memset(videoBuffer, 0, sizeof(videoBuffer));
     for (int y = 10; y < 20; y++) {
@@ -21,6 +24,8 @@ int main(int argc, char* argv[]) {
             videoBuffer[y * 64 + x] = 1;
         }
     }
+    
+    cpu.setVideoBuffer(videoBuffer);
 
     while (!done) {
         SDL_Event event;
@@ -29,9 +34,13 @@ int main(int argc, char* argv[]) {
                 done = true;
             }
         }
+        display.clear();
+        cpu.setVideoBuffer(videoBuffer);
+        display.draw(cpu.getVideoBuffer());
 
         display.clear();
-        display.draw(videoBuffer);
+        cpu.testExecuteOpcode(0x00E0);
+        display.draw(cpu.getVideoBuffer());
     }
     /*
     SDL_Window *window;

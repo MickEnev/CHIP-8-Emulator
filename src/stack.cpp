@@ -14,6 +14,13 @@ uint16_t Stack::pop() {
     return value;
 }
 
+uint16_t Stack::top() {
+    if (_stack.empty()) {
+        throw std::runtime_error("Stack empty!");
+    }
+    return _stack.top();
+}
+
 bool Stack::empty() const {
     return _stack.empty();
 }

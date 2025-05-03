@@ -11,6 +11,9 @@ class Chip8 {
     void loadROM(const char* filename);
     void cycle();           // Fetch, decode, execute
     void updateTimers();    // Called at 60Hz
+    uint8_t* getVideoBuffer();
+    void setVideoBuffer(uint8_t buffer[]); // For testing
+    void testExecuteOpcode(uint16_t opcode); // For Testing
 
     private:
     Memory _memory;
