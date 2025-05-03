@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <iostream>
+#include <vector>
 
 Chip8::Chip8() : _I(0), _PC(0), _delayTimer(0), _soundTimer(0)
     {
@@ -16,6 +17,17 @@ Chip8::Chip8() : _I(0), _PC(0), _delayTimer(0), _soundTimer(0)
 
 void Chip8::loadROM(const char* filename) {
     // TODO: Figure out how to load a rom... LOL
+    std::ifstream rom(filename, std::ios::binary | std::ios::ate);
+    if (!rom) throw std::runtime_error("Failed to open ROM");
+
+    std::streamsize size = rom.tellg();
+    rom.seekg(0, std::ios::beg);
+
+    std::vector<char> buffer(size);
+    if (!rom.read(buffer.data(), size)) {
+        // Left off here before meeting with swarup
+    }
+
 }
 
 void Chip8::cycle() {
@@ -83,6 +95,26 @@ void Chip8::executeOpcode(uint16_t opcode) {
                     std::cerr << "Unknown opcode: " << std::hex << opcode << std::endl;
                     
             }
+            break;
+        
+        case 0x1000:
+            _PC = opcode & 0x0FFF;
+            break;
+        case 0x2000:
+            _stack.push(opcode & 0x0FFF);
+            _PC = _stack.top();
+            break;
+        case 0x3000: // TODO: Come back to this and check that its right
+            if (_V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF)) {
+                _stack.pop();
+                _PC = _stack.top();
+            }
+        // TODO 3 4 and 5
+        case 0x6000:
+            _V[(opcode & 0x0F00) >> 8] = opcode & 0x00FF; // 0000 0000 0000 1011 
+            break;
+        case 0x7000:
+            _V[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
             break;
 
         default:

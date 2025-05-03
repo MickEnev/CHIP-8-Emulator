@@ -17,6 +17,7 @@ int main(int argc, char* argv[]) {
 
     Chip8 cpu;
 
+    // Test video buffer of rectangle
     uint8_t videoBuffer[64 * 32];
     std::memset(videoBuffer, 0, sizeof(videoBuffer));
     for (int y = 10; y < 20; y++) {
