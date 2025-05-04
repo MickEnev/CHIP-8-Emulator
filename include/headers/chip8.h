@@ -12,6 +12,7 @@ class Chip8 {
     void cycle();           // Fetch, decode, execute
     void updateTimers();    // Called at 60Hz
     uint8_t* getVideoBuffer();
+    void setKeyState(uint8_t key, bool isPressed);
     void setVideoBuffer(uint8_t buffer[]); // For testing
     void testExecuteOpcode(uint16_t opcode); // For Testing
 

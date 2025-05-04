@@ -24,6 +24,32 @@ int main(int argc, char* argv[]) {
             if (event.type == SDL_EVENT_QUIT) {
                 done = true;
             }
+
+            if (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP) {
+                bool isPressed = event.type == SDL_EVENT_KEY_DOWN;
+                
+                switch (event.key.key) {
+                    case SDLK_1:  cpu.setKeyState(0x1, isPressed); break;
+                    case SDLK_2:  cpu.setKeyState(0x2, isPressed); break;
+                    case SDLK_3:  cpu.setKeyState(0x3, isPressed); break;
+                    case SDLK_4:  cpu.setKeyState(0xC, isPressed); break;
+
+                    case SDLK_Q:  cpu.setKeyState(0x4, isPressed); break;
+                    case SDLK_W:  cpu.setKeyState(0x5, isPressed); break;
+                    case SDLK_E:  cpu.setKeyState(0x6, isPressed); break;
+                    case SDLK_R:  cpu.setKeyState(0xD, isPressed); break;
+
+                    case SDLK_A:  cpu.setKeyState(0x7, isPressed); break;
+                    case SDLK_S:  cpu.setKeyState(0x8, isPressed); break;
+                    case SDLK_D:  cpu.setKeyState(0x9, isPressed); break;
+                    case SDLK_F:  cpu.setKeyState(0xE, isPressed); break;
+
+                    case SDLK_Z:  cpu.setKeyState(0xA, isPressed); break;
+                    case SDLK_X:  cpu.setKeyState(0x0, isPressed); break;
+                    case SDLK_C:  cpu.setKeyState(0xB, isPressed); break;
+                    case SDLK_V:  cpu.setKeyState(0xF, isPressed); break;
+                }
+            }
         }
             cpu.cycle();
             cpu.updateTimers();

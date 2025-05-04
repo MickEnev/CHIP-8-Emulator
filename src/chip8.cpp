@@ -50,6 +50,10 @@ uint8_t* Chip8::getVideoBuffer() {
     return _video;
 }
 
+void Chip8::setKeyState(uint8_t key, bool isPressed) {
+    _keypad[key] = isPressed ? 1 : 0;
+}
+
 // For Testing ------------------
 void Chip8::setVideoBuffer(uint8_t buffer[]) {
     for (int i = 0; i < 64 * 32; i++) {
@@ -107,25 +111,108 @@ void Chip8::executeOpcode(uint16_t opcode) {
             _PC = opcode & 0x0FFF;
             break;
         case 0x3000:
+            if (_V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF)) {
+                _PC += 2;
+            }
+            break;
+        case 0x4000:
             if (_V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF)) {
                 _PC += 2;
             }
             break;
+        case 0x5000: { 
+            uint8_t x = (opcode & 0x0F00) >> 8;
+            uint8_t y = (opcode & 0x00F0) >> 4;
+            if (_V[x] == _V[y]) {
+                _PC += 2;
+            }
+            break;
+        }
         case 0x6000:
             _V[(opcode & 0x0F00) >> 8] = opcode & 0x00FF; // 0000 0000 0000 1011 
             break;
         case 0x7000:
             _V[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
             break;
+        case 0x8000: {
+        uint8_t x = (opcode & 0x0F00) >> 8;
+        uint8_t y = (opcode & 0x00F0) >> 4;
+            switch (opcode & 0x000F) {
+                case 0x0000:
+                    _V[x] = _V[y];
+                    break;
+                case 0x0001:
+                    _V[x] |= _V[y];
+                    break;
+                case 0x0002:
+                    _V[x] &= _V[y];
+                    break;
+                case 0x0003:
+                    _V[x] ^= _V[y];
+                    break;
+                case 0x0004: {
+                    if (_V[x] + _V[y] > 255) {
+                        _V[15] = 1;
+                    } else {
+                        _V[15] = 0;
+                    }
+                    uint8_t res = (_V[x] + _V[y]) & 0xFF;
+                    _V[x] = res;
+                    break;
+                }
+                case 0x0005: {
+                    if (_V[x] > _V[y]) {
+                        _V[15] = 1;
+                    } else {
+                        _V[15] = 0;
+                    }
+                    uint8_t res = (_V[x] - _V[y]) & 0xFF;
+                    _V[x] = res;
+                    break;
+                }
+                case 0x0006:
+                    _V[15] = _V[x] & 0x1;
+                    _V[x] >>= 1;
+                    break;
+                case 0x0007:
+                    if (_V[y] >= _V[x]) {
+                        _V[15] = 1;
+                    } else {
+                        _V[15] = 0;
+                    }
+                    _V[x] = _V[y] - _V[x];
+                    break;
+                case 0x000E:
+                    _V[15] = (_V[x] & 0x8) >> 7;
+                    _V[x] <<= 1;
+                    break;
+                break;
+            }
+        }
+        case 0x9000: {
+            uint8_t x = (opcode & 0x0F00) >> 8;
+            uint8_t y = (opcode & 0x00F0) >> 4;
+            if (_V[x] != _V[y]) {
+                _PC += 2;
+            }
+            break;
+        }
         case 0xA000:
             _I = opcode & 0x0FFF;
             break;
+        case 0xB000:
+            _PC = _V[0] + (opcode & 0x0FFF);
+            break;
+        case 0xC000: {
+            uint8_t x = (opcode & 0x0F00) >> 8;
+            _V[x] = (rand() % 256) & (opcode & 0x00FF);
+            break;
+        }
         case 0XD000: {
             uint8_t x = _V[(opcode & 0x0F00) >> 8];
             uint8_t y = _V[(opcode & 0x00F0) >> 4];
             uint8_t height = opcode & 0x000F;
             _V[0xF] = 0;
-
             for (int row = 0; row < height; row++) {
                 uint8_t spriteByte = _memory.read(_I + row);
                 for (int col = 0; col < 8; col++) {
@@ -137,11 +224,13 @@ void Chip8::executeOpcode(uint16_t opcode) {
                         _video[index] ^= 1;
                     }
                 }
-                std::cout << "I=" << std::hex << +_I << " x=" << +x << " y=" << +y << " byte=" << +spriteByte << std::endl;
+                //std::cout << "I=" << std::hex << +_I << " x=" << +x << " y=" << +y << " byte=" << +spriteByte << std::endl;
             }
-            
             break;
         }
+        //case 0xE000:
+            //break;
+
         default:
             std::cerr << "Unknown opcode: " << std::hex << opcode << std::endl;
     }
