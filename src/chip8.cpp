@@ -91,7 +91,6 @@ void Chip8::executeOpcode(uint16_t opcode) {
             switch (opcode & 0x00FF) {
                 case 0x00E0: // Display clear
                     memset(_video, 0, sizeof(_video));
-                    _V[15] = 1; // Set VF to true when pixel gets turned off MIGHT BE WRONG
                     break;
                 case 0x00EE: // Returns from subroutine
                     _PC = _stack.top();
@@ -183,11 +182,12 @@ void Chip8::executeOpcode(uint16_t opcode) {
                     _V[x] = _V[y] - _V[x];
                     break;
                 case 0x000E:
-                    _V[15] = (_V[x] & 0x8) >> 7;
+                    _V[15] = (_V[x] & 0x80) >> 7;
                     _V[x] <<= 1;
                     break;
                 break;
             }
+            break;
         }
         case 0x9000: {
             uint8_t x = (opcode & 0x0F00) >> 8;
@@ -228,9 +228,78 @@ void Chip8::executeOpcode(uint16_t opcode) {
             }
             break;
         }
-        //case 0xE000:
-            //break;
-
+        case 0xE000:
+            switch (opcode & 0x00FF) {
+                case 0x9E:
+                    if (_keypad[_V[(opcode & 0x0F00) >> 8]] != 0) {
+                        _PC += 2;
+                    }
+                    break;
+                case 0xA1:
+                    if (_keypad[_V[(opcode & 0x0F00) >> 8]] == 0) {
+                        _PC += 2;
+                    }
+                    break;
+                default:
+                    std::cerr << "Unknown 0xE000 opcode: " << std::hex << opcode << std::endl;
+                    break;
+            }
+            break;
+        
+        case 0xF000: {
+            uint8_t x = (opcode & 0x0F00) >> 8;
+            switch (opcode & 0x00FF) {
+                case 0x07:
+                    _V[x] = _delayTimer;
+                    break;
+                case 0x0A: {
+                    bool keyPressed = false;
+                    for (int i = 0; i < 16; i++) {
+                        if (_keypad[i] != 0) {
+                            _V[x] = i;
+                            keyPressed = true;
+                            break;
+                        }
+                    }
+                    if (!keyPressed) {
+                        _PC -= 2;
+                    }
+                    break;
+                }
+                case 0x15:
+                    _delayTimer = _V[x];
+                    break;
+                case 0x18:
+                    _soundTimer = _V[x];
+                    break;  
+                case 0x1E:
+                    _I += _V[x];
+                    break;
+                case 0x29:
+                    _I = _V[x] * 5;
+                    break;
+                case 0x33:
+                    _memory.write(_I,     _V[x] / 100);
+                    _memory.write(_I + 1, (_V[x] / 10) % 10);
+                    _memory.write(_I + 2, _V[x] % 10);
+                    break;
+                case 0x55:
+                    for (int i = 0; i <= x; ++i) {
+                        _memory.write(_I + i, _V[i]);
+                    }
+                    break;
+                case 0x65:
+                    for (int i = 0; i <= x; ++i) {
+                        _V[i] = _memory.read(_I + i);
+                    }
+                    break;
+                default:
+                std::cerr << "Unknown 0xF000 opcode" << std::hex << opcode << std::endl;
+                break;
+            }
+            break;
+        }
+        
         default:
             std::cerr << "Unknown opcode: " << std::hex << opcode << std::endl;
     }

@@ -8,15 +8,17 @@
 #include "chip8.h"
 
 int main(int argc, char* argv[]) {
-    std::cout << "SDL WORKS" << std::endl;
-    Memory memTest = Memory();
-    std::cout << memTest.read(0x050) << std::endl;
+    const int INSTRUCTIONS_PER_SECOND = 700;
+    const int FRAME_RATE = 60;
+
+    uint32_t lastCycleTime = SDL_GetTicks();
+    uint32_t lastTimerUpdate = SDL_GetTicks();
 
     Display display;
     bool done = false;
 
     Chip8 cpu;
-    cpu.loadROM("src/IBM Logo.ch8");
+    cpu.loadROM("ROMS/Airplane.ch8");
 
     while (!done) {
         SDL_Event event;
@@ -51,13 +53,24 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-            cpu.cycle();
-            cpu.updateTimers();
-
+            uint32_t currentTime = SDL_GetTicks();
+            if (currentTime - lastCycleTime > 1000 / INSTRUCTIONS_PER_SECOND) {
+                cpu.cycle();
+                lastCycleTime = currentTime;
+            }
+            
+            // Update timers at 60Hz
+            if (currentTime - lastTimerUpdate > 1000 / 60) {
+                cpu.updateTimers();
+                lastTimerUpdate = currentTime;
+            }
+            
+            // Render at the target frame rate
             display.clear();
             display.draw(cpu.getVideoBuffer());
             
-            SDL_Delay(2);
+            // Add a small delay to prevent CPU hogging
+            SDL_Delay(1);
     }
 
     /*
